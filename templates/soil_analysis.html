@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Analysis - AI Farming Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container { padding: 20px; }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            background: rgba(255,255,255,0.95);
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 25px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+            color: white;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 10px 25px;
+            border-radius: 50px;
+        }
+        .btn-back:hover { transform: scale(1.05); color: white; }
+        .status-excellent { color: #28a745; }
+        .status-good { color: #17a2b8; }
+        .status-attention { color: #ffc107; }
+        .deficiency-tag {
+            background: #dc3545;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 3px;
+            display: inline-block;
+        }
+        .recommendation-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #11998e;
+        }
+        .soil-input-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .nutrient-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #11998e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-flask text-success"></i> Soil Analysis</h2>
+            <p class="text-muted">Analyze your soil nutrients and get personalized recommendations</p>
+            
+            <form method="POST" class="mt-4">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="soil-input-group">
+                            <label class="form-label"><i class="fas fa-circle text-success"></i> Nitrogen (N)</label>
+                            <input type="number" name="nitrogen" class="form-control" value="30" step="0.1" min="0" max="100">
+                            <small class="text-muted">mg/kg</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="soil-input-group">
+                            <label class="form-label"><i class="fas fa-circle text-primary"></i> Phosphorus (P)</label>
+                            <input type="number" name="phosphorus" class="form-control" value="20" step="0.1" min="0" max="100">
+                            <small class="text-muted">mg/kg</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="soil-input-group">
+                            <label class="form-label"><i class="fas fa-circle text-warning"></i> Potassium (K)</label>
+                            <input type="number" name="potassium" class="form-control" value="25" step="0.1" min="0" max="100">
+                            <small class="text-muted">mg/kg</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="soil-input-group">
+                            <label class="form-label"><i class="fas fa-flask"></i> pH Level</label>
+                            <input type="number" name="ph" class="form-control" value="6.5" step="0.1" min="0" max="14">
+                            <small class="text-muted">Scale 0-14</small>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-custom"><i class="fas fa-microscope"></i> Analyze Soil</button>
+            </form>
+
+            {% if analysis %}
+            <div class="mt-5">
+                <h4><i class="fas fa-chart-bar"></i> Analysis Results</h4>
+                <div class="alert alert-{{ 'success' if analysis.status == 'Excellent' else 'info' if analysis.status == 'Good' else 'warning' }} mt-3">
+                    <i class="fas fa-{{ 'check-circle' if analysis.status == 'Excellent' else 'info-circle' if analysis.status == 'Good' else 'exclamation-triangle' }}"></i>
+                    Soil Health Status: <strong>{{ analysis.status }}</strong>
+                </div>
+                
+                {% if analysis.deficiencies %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-exclamation-circle text-danger"></i> Nutrient Deficiencies Detected:</h6>
+                    {% for deficiency in analysis.deficiencies %}
+                    <span class="deficiency-tag"><i class="fas fa-times-circle"></i> {{ deficiency }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if analysis.recommendations %}
+                <div class="mt-3">
+                    <h6><i class="fas fa-lightbulb text-warning"></i> Recommendations:</h6>
+                    {% for rec in analysis.recommendations %}
+                    <div class="recommendation-item">
+                        <i class="fas fa-arrow-right text-success"></i> {{ rec }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Soil Health Meter -->
+                <div class="mt-4">
+                    <h6>Soil Health Score</h6>
+                    <div class="progress" style="height: 25px;">
+                        {% set score = 70 %}
+                        {% if analysis.status == 'Excellent' %}{% set score = 90 %}
+                        {% elif analysis.status == 'Good' %}{% set score = 75 %}
+                        {% else %}{% set score = 50 %}{% endif %}
+                        <div class="progress-bar bg-{{ 'success' if score >= 80 else 'info' if score >= 60 else 'warning' }}" 
+                             role="progressbar" 
+                             style="width:  score " 
+                             aria-valuenow="{{ score }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ score }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="/" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
